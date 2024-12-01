@@ -1,14 +1,14 @@
 import pandas as pd
 import os
+from typing import Optional
 
-def csv_to_parquet(caminho, caminho_para_salvar=None):
+def csv_to_parquet(caminho: str, caminho_para_salvar: Optional[str] = None) -> None:
     try:
         # Reading file
         df = pd.read_csv(caminho)
 
         if caminho_para_salvar is None:
-            nome_arquivo = os.path.splitext(os.path.basename(caminho))[0]
-            caminho_para_salvar = f"{nome_arquivo}.json"
+            caminho_para_salvar = os.path.splitext(caminho)[0] + ".parquet"
 
         # Save as parquet 
         df.to_parquet(caminho_para_salvar, index=False, engine='pyarrow')
