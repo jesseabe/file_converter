@@ -1,10 +1,6 @@
 import streamlit as st
-import os
-import sys
 from pathlib import Path
-
-# Add the backend folder to the Python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import shutil
 
 # Import all backend conversion functions
 from backend.csv_to_json import csv_to_json
@@ -20,27 +16,42 @@ from backend.xlsx_to_csv import xlsx_to_csv
 from backend.xlsx_to_json import xlsx_to_json
 from backend.xlsx_to_parquet import xlsx_to_parquet
 
-    # Define the folder to save uploaded files
+# Define the folder to save uploaded files
 UPLOAD_FOLDER = Path("data")
 UPLOAD_FOLDER.mkdir(exist_ok=True)
+
+def cleanup_file(file_path):
+    """Remove the specified file if it exists."""
+    if file_path.exists():
+        file_path.unlink()
 
 def layout():
     # Page configuration
     st.set_page_config(page_title="File Conversion App", page_icon="🔄", layout="wide")
 
-    # Title and description
-    st.title("🔄 File Conversion App")
-    st.write(
+    # Sidebar for navigation
+    st.sidebar.header("File Conversion App")
+    st.sidebar.write(
         """
-        Welcome to the File Conversion App! 🌟 
-        Upload your file, select a conversion format, and download the converted file with ease.
+        Upload your file, select the desired conversion format, 
+        and download the converted file easily. 🛠️
+        """
+    )
+
+    # Main interface
+    st.title("🌟 File Conversion App 🌟")
+    st.markdown(
+        """
+        Welcome to the **File Conversion App**. This tool allows you to convert files between formats 
+        (CSV, JSON, XLSX, Parquet) seamlessly. 📂
         """
     )
 
     # File upload
     uploaded_file = st.file_uploader(
         "Upload a file for conversion:", 
-        type=["csv", "json", "xlsx", "parquet"]
+        type=["csv", "json", "xlsx", "parquet"],
+        help="Supported formats: CSV, JSON, XLSX, Parquet."
     )
 
     if uploaded_file:
@@ -71,6 +82,7 @@ def layout():
         if st.button("Convert"):
             output_file = None
             try:
+                # Call appropriate conversion function
                 if file_type == "csv":
                     if target_format == "JSON":
                         output_file = save_path.with_suffix(".json")
@@ -123,7 +135,11 @@ def layout():
                         file_name=output_file.name,
                         mime="application/octet-stream"
                     )
+                    # Cleanup files after download
+                    cleanup_file(save_path)
+                    cleanup_file(output_file)
             except Exception as e:
                 st.error(f"❌ An error occurred during conversion: {e}")
     else:
         st.info("💡 Please upload a file to start the conversion process.")
+
